@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>It's Ahesan // Senior Creative Developer - 360° Scrollytelling Portfolio</title>
+  <style>
+    :root {
+      --bg: #08090c;
+      --cyan: #00f2fe;
+      --amber: #ff7b00;
+      --card-bg: rgba(13, 16, 24, 0.78);
+      --border: rgba(255, 255, 255, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      background-color: var(--bg);
+      color: #f3f4f6;
+      overflow-x: clip;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+      min-height: 100vh;
+      scroll-behavior: smooth;
+    }
+
+    /* Custom sleek scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #08090c;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.25);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--cyan);
+    }
+
+    /* Cinematic Film Noise */
+    .noise-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      opacity: 0.025;
+      pointer-events: none;
+      z-index: 999;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    }
+
+    /* FIXED BACKGROUND CANVAS CONTAINER: PHOTO ROTATES BEHIND ENTIRE SITE */
+    #canvas-fixed-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      pointer-events: none;
+      z-index: 1;
+      overflow: hidden;
+      background-color: var(--bg);
+    }
+
+    #scrolly-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: block;
+      pointer-events: none;
+    }
+
+    /* Radial vignette to seamlessly fade canvas edges */
+    .canvas-vignette {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+      background: radial-gradient(circle at center, transparent 30%, rgba(8, 9, 12, 0.5) 60%, #08090c 100%);
+    }
+
+    /* Glass Panels */
+    .glass-panel {
+      background: var(--card-bg);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid var(--border);
+      border-radius: 1.25rem;
+    }
+
+    /* Floating Navigation */
+    header {
+      position: fixed;
+      top: 1.5rem;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+      padding: 0 1rem;
+      pointer-events: none;
+    }
+
+    .nav-inner {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      padding: 0.75rem 1.5rem;
+      border-radius: 9999px;
+      max-width: 68rem;
+      width: 100%;
+      box-shadow: 0 20px 40px -10px rgba(0,0,0,0.6);
+    }
+
+    /* Telemetry HUD Badge */
+    .hud-badge {
+      position: fixed;
+      top: 5.5rem;
+      right: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-family: monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+      color: #d4d4d8;
+      padding: 0.45rem 1.25rem;
+      border-radius: 9999px;
+      z-index: 90;
+      pointer-events: auto;
+      box-shadow: 0 6px 25px rgba(0,0,0,0.6);
+    }
+
+    .hud-dot {
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 9999px;
+      background-color: var(--cyan);
+      box-shadow: 0 0 12px var(--cyan);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    /* SCROLLING FOREGROUND CONTAINER */
+    #foreground-content {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+    }
+
+    /* Fullscreen Screen Section (Hero, Philosophy, Craft) */
+    .screen-section {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 4rem 2rem;
+      position: relative;
+    }
+
+    .center-content {
+      align-items: center;
+      text-align: center;
+      max-width: 64rem;
+      margin: 0 auto;
+    }
+
+    .left-content {
+      align-items: flex-start;
+      text-align: left;
+      max-width: 44rem;
+      margin-left: max(2rem, 8vw);
+    }
+
+    .right-content {
+      align-items: flex-end;
+      text-align: right;
+      max-width: 44rem;
+      margin-left: auto;
+      margin-right: max(2rem, 8vw);
+    }
+
+    h1.display-title {
+      font-size: clamp(3.2rem, 8.5vw, 8rem);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      color: #ffffff;
+      text-shadow: 0 12px 35px rgba(0,0,0,0.95);
+    }
+
+    h2.section-title {
+      font-size: clamp(2.2rem, 5.5vw, 4.5rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      color: #ffffff;
+      margin-bottom: 1.25rem;
+      text-shadow: 0 8px 25px rgba(0,0,0,0.9);
+    }
+
+    p.subtitle {
+      font-size: clamp(1.05rem, 2vw, 1.45rem);
+      font-weight: 300;
+      color: #e4e4e7;
+      line-height: 1.6;
+      text-shadow: 0 4px 16px rgba(0,0,0,0.9);
+    }
+
+    .pill-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.95rem;
+      margin-bottom: 1.25rem;
+      border-radius: 9999px;
+      font-family: monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border: 1px solid rgba(0, 242, 254, 0.4);
+      color: var(--cyan);
+      background: rgba(0, 242, 254, 0.12);
+      backdrop-filter: blur(10px);
+    }
+
+    /* SELECTED WORKS GRID SECTION OVER ROTATING PHOTO */
+    #projects-section {
+      padding: 6rem 2rem 8rem;
+      max-width: 80rem;
+      margin: 0 auto;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+      gap: 2.25rem;
+      margin-top: 3.5rem;
+    }
+
+    .project-card {
+      padding: 2.5rem;
+      border-radius: 1.5rem;
+      transition: all 0.35s ease;
+      cursor: pointer;
+    }
+    .project-card:hover {
+      border-color: rgba(0, 242, 254, 0.45);
+      transform: translateY(-5px);
+      box-shadow: 0 20px 45px -10px rgba(0, 242, 254, 0.2);
+    }
+
+    /* CONTACT & COLLABORATION SECTION OVER ROTATING PHOTO */
+    #contact-section {
+      padding: 6rem 2rem 10rem;
+      max-width: 72rem;
+      margin: 0 auto;
+    }
+
+    .contact-box {
+      padding: 4.5rem 3rem;
+      border-radius: 2rem;
+      text-align: center;
+      background: rgba(13, 16, 24, 0.82);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      box-shadow: 0 25px 60px rgba(0,0,0,0.7);
+    }
+
+    /* Interactive 360° Scrub Dock */
+    .scrub-dock {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 90;
+      padding: 0.65rem 1.6rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border-radius: 9999px;
+      font-family: monospace;
+      font-size: 0.8rem;
+      color: #f4f4f5;
+      box-shadow: 0 12px 35px rgba(0,0,0,0.8);
+      pointer-events: auto;
+      border: 1px solid rgba(0, 242, 254, 0.35);
+    }
+    .scrub-dock input[type="range"] {
+      cursor: pointer;
+      accent-color: var(--cyan);
+      width: 160px;
+    }
+
+    /* Preloader */
+    #preloader {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      background: #08090c;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.5s ease;
+    }
+
+    .spinner-ring {
+      width: 4rem;
+      height: 4rem;
+      border: 2px solid rgba(255,255,255,0.1);
+      border-top-color: var(--cyan);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 1.5rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="noise-overlay"></div>
+
+  <!-- FIXED BACKGROUND CANVAS: PHOTO ROTATES BEHIND ENTIRE SITE -->
+  <div id="canvas-fixed-container">
+    <canvas id="scrolly-canvas"></canvas>
+    <div class="canvas-vignette"></div>
+  </div>
+
+  <!-- FLOATING NAVIGATION BAR -->
+  <header>
+    <div class="nav-inner glass-panel">
+      <div style="display:flex; align-items:center; gap:0.75rem; font-weight:bold; letter-spacing:0.05em; font-size:0.85rem;">
+        <div style="width:1.9rem; height:1.9rem; border-radius:50%; background:linear-gradient(45deg, var(--cyan), var(--amber)); display:flex; align-items:center; justify-content:center; color:#000; font-size:0.7rem; font-weight:900;">
+          IA
+        </div>
+        <span>IT'S AHESAN // CREATIVE DEVELOPER</span>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:1.5rem; font-family:monospace; font-size:0.75rem; color:#a1a1aa;">
+        <a href="#projects-section" style="color:#d4d4d8; text-decoration:none;">SELECTED WORKS</a>
+        <a href="#contact-section" style="color:#d4d4d8; text-decoration:none;">COLLABORATE</a>
+        <span style="color:#10b981; display:flex; align-items:center; gap:0.4rem;">
+          <span style="width:0.4rem; height:0.4rem; border-radius:50%; background:#10b981; display:inline-block;"></span>
+          360&deg; ROTATION
+        </span>
+        <span id="clock-display"></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- TELEMETRY HUD WITH 360° ANGLE DISPLAY -->
+  <div class="hud-badge glass-panel">
+    <div class="hud-dot"></div>
+    <span id="hud-angle" style="color:var(--cyan); font-weight:bold;">0&deg; ROTATION</span>
+    <span style="color:#52525b;">|</span>
+    <span id="hud-frame">FRAME 00 / 59</span>
+    <span style="color:#52525b;">|</span>
+    <span id="hud-scrub">SCRUB 0%</span>
+  </div>
+
+  <!-- PRELOADER -->
+  <div id="preloader">
+    <div class="spinner-ring"></div>
+    <div style="font-family:monospace; font-size:1.1rem; color:var(--cyan); margin-bottom:0.5rem;" id="preload-pct">0%</div>
+    <div style="font-family:monospace; font-size:0.75rem; color:#71717a; letter-spacing:0.15em;" id="preload-detail">BUFFERING 360&deg; SEQUENCE (0/60)</div>
+  </div>
+
+  <!-- SCROLLING FOREGROUND CONTENT: EVERYTHING SCROLLS OVER ROTATING PHOTO -->
+  <main id="foreground-content">
+    <!-- SECTION 1: HERO (CENTER) -->
+    <section class="screen-section">
+      <div class="center-content">
+        <div class="pill-kicker">Interactive 360&deg; Scrollytelling Portfolio</div>
+        <h1 class="display-title">It's Ahesan</h1>
+        <p class="subtitle" style="margin-top:1.25rem;">Creative Developer &amp; Interaction Architect</p>
+        <p style="font-family:monospace; font-size:0.85rem; color:#a1a1aa; margin-top:1rem; letter-spacing:0.12em; text-transform:uppercase;">
+          &darr; Scroll down &bull; Background photo rotates 360&deg; across all works &amp; contact &darr;
+        </p>
+      </div>
+    </section>
+
+    <!-- SECTION 2: DYNAMIC MOTION (LEFT ALIGNED) -->
+    <section class="screen-section">
+      <div class="left-content glass-panel" style="padding: 3rem; border-radius: 1.5rem;">
+        <div class="pill-kicker" style="border-color:rgba(0,242,254,0.4); color:var(--cyan);">01 // Dynamic Motion &bull; 90&deg; Turn</div>
+        <h2 class="section-title">I build digital experiences.</h2>
+        <p class="subtitle">
+          Every transition, canvas shader, and frame is calibrated to captivate. Merging cinematic rendering with sub-millisecond execution for world-class web experiences.
+        </p>
+        <div style="display:flex; gap:2.5rem; margin-top:2rem; font-family:monospace; font-size:0.85rem;">
+          <div><strong style="color:var(--cyan); font-size:1.75rem;">60+ FPS</strong><br><span style="color:#71717a;">Smooth Scrub</span></div>
+          <div><strong style="color:var(--amber); font-size:1.75rem;">12+ Awards</strong><br><span style="color:#71717a;">Awwwards &amp; FWA</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: PRECISION ENGINEERING (RIGHT ALIGNED) -->
+    <section class="screen-section">
+      <div class="right-content glass-panel" style="padding: 3rem; border-radius: 1.5rem;">
+        <div class="pill-kicker" style="border-color:rgba(255,123,0,0.4); color:var(--amber);">02 // Precision Engineering &bull; 270&deg; Arc</div>
+        <h2 class="section-title">Bridging design and engineering.</h2>
+        <p class="subtitle">
+          Uncompromising dedication to kinetic typography, 360&deg; spatial rhythm, and responsive HTML5 canvas graphics that adapt seamlessly across all device screens.
+        </p>
+        <div style="display:flex; flex-wrap:wrap; justify-content:flex-end; gap:0.6rem; margin-top:2rem; max-width:32rem;">
+          <span style="padding:0.35rem 0.9rem; border-radius:9999px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); font-family:monospace; font-size:0.75rem;">Next.js 14</span>
+          <span style="padding:0.35rem 0.9rem; border-radius:9999px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); font-family:monospace; font-size:0.75rem;">Framer Motion</span>
+          <span style="padding:0.35rem 0.9rem; border-radius:9999px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); font-family:monospace; font-size:0.75rem;">HTML5 Canvas</span>
+          <span style="padding:0.35rem 0.9rem; border-radius:9999px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); font-family:monospace; font-size:0.75rem;">WebGL / GLSL</span>
+          <span style="padding:0.35rem 0.9rem; border-radius:9999px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); font-family:monospace; font-size:0.75rem;">TypeScript</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: SELECTED WORKS (SCROLLS SMOOTHLY OVER ROTATING PHOTO) -->
+    <section id="projects-section">
+      <div style="font-family:monospace; font-size:0.8rem; color:var(--cyan); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:0.75rem;">
+        03 // Featured Case Studies
+      </div>
+      <h2 style="font-size: clamp(2.5rem, 5.5vw, 4.5rem); font-weight:900; text-transform:uppercase; letter-spacing:-0.03em; text-shadow:0 8px 30px rgba(0,0,0,0.9);">
+        Selected Works
+      </h2>
+      <p style="color:#a1a1aa; font-weight:300; font-size:1.15rem; margin-top:0.5rem; text-shadow:0 4px 15px rgba(0,0,0,0.8);">
+        Curated WebGL experiences, generative tools, and production design systems scrolling directly over the rotating sequence.
+      </p>
+
+      <div class="grid-2">
+        <!-- Card 1 -->
+        <div class="project-card glass-panel">
+          <div style="display:flex; justify-content:space-between; margin-bottom:1.25rem; font-family:monospace; font-size:0.75rem; color:#71717a;">
+            <span style="color:var(--cyan); font-weight:bold;">01 // WEBGL &amp; AUDIO ENGINE</span>
+            <span>2026</span>
+          </div>
+          <h3 style="font-size:1.85rem; font-weight:bold; margin-bottom:0.75rem; color:#fff;">Aetheria Hyperdrive</h3>
+          <p style="color:#d4d4d8; line-height:1.65; margin-bottom:1.75rem; font-weight:300; font-size:1rem;">
+            Real-time generative compute shader particle simulation with spatial audio synesthesia and 120 FPS canvas physics rendering.
+          </p>
+          <div style="display:inline-block; padding:0.4rem 0.9rem; border-radius:0.5rem; background:rgba(255,123,0,0.12); border:1px solid rgba(255,123,0,0.3); color:var(--amber); font-family:monospace; font-size:0.75rem; font-weight:bold;">
+            Awwwards Site of the Day
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="project-card glass-panel">
+          <div style="display:flex; justify-content:space-between; margin-bottom:1.25rem; font-family:monospace; font-size:0.75rem; color:#71717a;">
+            <span style="color:var(--cyan); font-weight:bold;">02 // DESIGN SYSTEM</span>
+            <span>2025</span>
+          </div>
+          <h3 style="font-size:1.85rem; font-weight:bold; margin-bottom:0.75rem; color:#fff;">Chronos Kinetic Framework</h3>
+          <p style="color:#d4d4d8; line-height:1.65; margin-bottom:1.75rem; font-weight:300; font-size:1rem;">
+            High-performance kinetic interaction framework engineered for Tier-1 fintech platforms with sub-pixel spring physics and tactile feedback.
+          </p>
+          <div style="display:inline-block; padding:0.4rem 0.9rem; border-radius:0.5rem; background:rgba(255,123,0,0.12); border:1px solid rgba(255,123,0,0.3); color:var(--amber); font-family:monospace; font-size:0.75rem; font-weight:bold;">
+            2.4M npm Downloads
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="project-card glass-panel">
+          <div style="display:flex; justify-content:space-between; margin-bottom:1.25rem; font-family:monospace; font-size:0.75rem; color:#71717a;">
+            <span style="color:var(--cyan); font-weight:bold;">03 // SPATIAL UI</span>
+            <span>2025</span>
+          </div>
+          <h3 style="font-size:1.85rem; font-weight:bold; margin-bottom:0.75rem; color:#fff;">Neuromorphic Spatial UI</h3>
+          <p style="color:#d4d4d8; line-height:1.65; margin-bottom:1.75rem; font-weight:300; font-size:1rem;">
+            Browser-based spatial computing interface exploring visionOS parallax glassmorphism, gesture tracking, and adaptive luminance.
+          </p>
+          <div style="display:inline-block; padding:0.4rem 0.9rem; border-radius:0.5rem; background:rgba(255,123,0,0.12); border:1px solid rgba(255,123,0,0.3); color:var(--amber); font-family:monospace; font-size:0.75rem; font-weight:bold;">
+            FWA of the Month
+          </div>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="project-card glass-panel">
+          <div style="display:flex; justify-content:space-between; margin-bottom:1.25rem; font-family:monospace; font-size:0.75rem; color:#71717a;">
+            <span style="color:var(--cyan); font-weight:bold;">04 // LUXURY DIGITAL</span>
+            <span>2024</span>
+          </div>
+          <h3 style="font-size:1.85rem; font-weight:bold; margin-bottom:0.75rem; color:#fff;">Obsidian Studio</h3>
+          <p style="color:#d4d4d8; line-height:1.65; margin-bottom:1.75rem; font-weight:300; font-size:1rem;">
+            Editorial luxury ecommerce experience with liquid scroll transformations and interactive 3D product visualizer.
+          </p>
+          <div style="display:inline-block; padding:0.4rem 0.9rem; border-radius:0.5rem; background:rgba(255,123,0,0.12); border:1px solid rgba(255,123,0,0.3); color:var(--amber); font-family:monospace; font-size:0.75rem; font-weight:bold;">
+            Site of the Year Nominee
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 5: CONTACT & COLLABORATION OVER ROTATING PHOTO -->
+    <section id="contact-section">
+      <div class="contact-box">
+        <div style="display:inline-flex; align-items:center; gap:0.5rem; font-family:monospace; font-size:0.8rem; color:var(--cyan); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:1.25rem;">
+          <span style="width:0.5rem; height:0.5rem; border-radius:50%; background:var(--cyan); box-shadow:0 0 10px var(--cyan);"></span>
+          Initiate Collaboration
+        </div>
+
+        <h2 style="font-size: clamp(2.4rem, 6vw, 4.5rem); font-weight:900; text-transform:uppercase; margin-bottom:1.5rem; line-height:1.05;">
+          Let's build something <span style="background:linear-gradient(45deg, var(--cyan), var(--amber)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">unforgettable.</span>
+        </h2>
+
+        <p style="color:#d4d4d8; font-weight:300; font-size:1.2rem; max-width:40rem; margin:0 auto 2.5rem; line-height:1.65;">
+          Available for bespoke creative technology commissions, interaction architecture, and cinematic web products.
+        </p>
+
+        <div style="display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:1.25rem;">
+          <button id="copyEmailBtn" style="cursor:pointer; display:inline-flex; align-items:center; gap:0.75rem; padding:1.15rem 2.25rem; border-radius:1rem; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.18); color:#ffffff; font-family:monospace; font-size:0.95rem; font-weight:600; letter-spacing:0.05em; transition:all 0.3s ease;">
+            <svg style="width:1.2rem; height:1.2rem; color:var(--cyan);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+            <span id="emailText">ahesan4@gmail.com</span>
+          </button>
+
+          <a href="mailto:ahesan4@gmail.com" style="display:inline-flex; align-items:center; gap:0.5rem; padding:1.15rem 2.5rem; border-radius:1rem; background:var(--cyan); color:#000; font-family:monospace; font-size:0.95rem; font-weight:bold; letter-spacing:0.05em; text-decoration:none; box-shadow:0 0 30px rgba(0,242,254,0.4); transition:all 0.3s ease;">
+            <span>SEND MESSAGE &rarr;</span>
+          </a>
+        </div>
+
+        <div style="margin-top:4rem; padding-top:2.5rem; border-top:1px solid rgba(255,255,255,0.08); display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:1.5rem; font-family:monospace; font-size:0.75rem; color:#71717a;">
+          <div>&copy; 2026 It's Ahesan &bull; Engineered with Next.js &amp; Framer Motion Architecture</div>
+          <button onclick="window.scrollTo({top:0, behavior:'smooth'})" style="background:transparent; border:none; color:#a1a1aa; cursor:pointer; font-family:monospace; font-size:0.75rem;">
+            &uarr; BACK TO TOP
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- INTERACTIVE 360° SCRUB DOCK -->
+  <div class="scrub-dock glass-panel">
+    <span>360&deg; ROTATE:</span>
+    <input type="range" id="frameSlider" min="0" max="360" value="0" />
+    <span id="sliderValue" style="color:var(--cyan); min-width:3.5rem; font-weight:bold;">0&deg;</span>
+  </div>
+
+  <!-- BULLETPROOF 360° CONTINUOUS ROTATION ENGINE -->
+  <script>
+    (function() {
+      const TOTAL_FRAMES = 60; // 00 through 59
+      const canvas = document.getElementById('scrolly-canvas');
+      const ctx = canvas.getContext('2d');
+
+      const hudAngle = document.getElementById('hud-angle');
+      const hudFrame = document.getElementById('hud-frame');
+      const hudScrub = document.getElementById('hud-scrub');
+      const preloader = document.getElementById('preloader');
+      const preloadPct = document.getElementById('preload-pct');
+      const preloadDetail = document.getElementById('preload-detail');
+
+      const frameSlider = document.getElementById('frameSlider');
+      const sliderValue = document.getElementById('sliderValue');
+
+      const images = [];
+      let loadedCount = 0;
+      let currentProgress = 0;
+      let isManualSlider = false;
+
+      // Adjust canvas resolution dynamically to match window pixels
+      function resizeCanvas() {
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = Math.round(window.innerWidth * dpr);
+        canvas.height = Math.round(window.innerHeight * dpr);
+        renderCurrentState();
+      }
+
+      /**
+       * Calculates continuous 360° rotation from scroll progress (0.0 to 1.0)
+       * Across the ENTIRE page scroll:
+       * Phase 1 (0° - 90°): 0 -> 59 (turns Right)
+       * Phase 2 (90° - 180°): 59 -> 0 (turns back to Center)
+       * Phase 3 (180° - 270°): 0 -> 59 Mirrored (turns Left)
+       * Phase 4 (270° - 360°): 59 -> 0 Mirrored (turns back to Center)
+       */
+      function calculate360State(progress) {
+        const p = Math.max(0, Math.min(1, progress));
+        const angle = Math.round(p * 360);
+
+        let frameIndex = 0;
+        let isFlipped = false;
+
+        if (p <= 0.25) {
+          const subP = p / 0.25;
+          frameIndex = Math.round(subP * (TOTAL_FRAMES - 1));
+          isFlipped = false;
+        } else if (p <= 0.50) {
+          const subP = (p - 0.25) / 0.25;
+          frameIndex = Math.round((1 - subP) * (TOTAL_FRAMES - 1));
+          isFlipped = false;
+        } else if (p <= 0.75) {
+          const subP = (p - 0.50) / 0.25;
+          frameIndex = Math.round(subP * (TOTAL_FRAMES - 1));
+          isFlipped = true;
+        } else {
+          const subP = (p - 0.75) / 0.25;
+          frameIndex = Math.round((1 - subP) * (TOTAL_FRAMES - 1));
+          isFlipped = true;
+        }
+
+        frameIndex = Math.max(0, Math.min(TOTAL_FRAMES - 1, frameIndex));
+        return { angle, frameIndex, isFlipped };
+      }
+
+      // Draw active frame with optional horizontal reflection for full 360° turnaround
+      function drawFrame(frameIndex, isFlipped) {
+        let img = images[frameIndex];
+        // Nearest loaded frame fallback
+        if (!img || !img.complete || img.naturalWidth === 0) {
+          for (let offset = 1; offset < TOTAL_FRAMES; offset++) {
+            const prev = images[frameIndex - offset];
+            if (prev && prev.complete && prev.naturalWidth > 0) {
+              img = prev;
+              break;
+            }
+            const next = images[frameIndex + offset];
+            if (next && next.complete && next.naturalWidth > 0) {
+              img = next;
+              break;
+            }
+          }
+        }
+
+        if (!img || !img.complete || img.naturalWidth === 0) return;
+
+        const cw = canvas.width;
+        const ch = canvas.height;
+        const iw = img.naturalWidth;
+        const ih = img.naturalHeight;
+
+        const hRatio = cw / iw;
+        const vRatio = ch / ih;
+        const ratio = Math.max(hRatio, vRatio);
+
+        const rw = iw * ratio;
+        const rh = ih * ratio;
+        const ox = (cw - rw) / 2;
+        const oy = (ch - rh) / 2;
+
+        ctx.clearRect(0, 0, cw, ch);
+        ctx.save();
+
+        if (isFlipped) {
+          ctx.translate(cw, 0);
+          ctx.scale(-1, 1);
+        }
+
+        ctx.drawImage(img, ox, oy, rw, rh);
+        ctx.restore();
+      }
+
+      function renderCurrentState() {
+        const { angle, frameIndex, isFlipped } = calculate360State(currentProgress);
+        drawFrame(frameIndex, isFlipped);
+
+        // Update HUD
+        const pad = String(frameIndex).padStart(2, '0');
+        hudAngle.textContent = `${angle}\u00B0 ROTATION`;
+        hudFrame.textContent = `FRAME ${pad} / 59`;
+        hudScrub.textContent = `SCRUB ${Math.round(currentProgress * 100)}%`;
+
+        if (!isManualSlider) {
+          frameSlider.value = angle;
+          sliderValue.textContent = `${angle}\u00B0`;
+        }
+      }
+
+      // Master scroll update function: photo rotates as user scrolls down the ENTIRE website
+      function updateFromScroll() {
+        if (isManualSlider) return;
+
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop || 0;
+        const totalDocScrollable = document.documentElement.scrollHeight - window.innerHeight;
+
+        let progress = totalDocScrollable > 0 ? scrollTop / totalDocScrollable : 0;
+        currentProgress = Math.max(0, Math.min(1, progress));
+
+        renderCurrentState();
+      }
+
+      // Preload all 60 frames
+      for (let i = 0; i < TOTAL_FRAMES; i++) {
+        const img = new Image();
+        const pad = String(i).padStart(2, '0');
+        img.src = `frame_${pad}_delay-0.067s.png`;
+
+        let attempts = 0;
+        img.onerror = function() {
+          attempts++;
+          if (attempts === 1) {
+            img.src = `sequence/frame_${pad}_delay-0.067s.png`;
+          } else if (attempts === 2) {
+            img.src = `./frame_${pad}_delay-0.067s.webp`;
+          }
+        };
+
+        img.onload = function() {
+          loadedCount++;
+          const pct = Math.round((loadedCount / TOTAL_FRAMES) * 100);
+          preloadPct.textContent = `${pct}%`;
+          preloadDetail.textContent = `BUFFERING 360\u00B0 SEQUENCE (${loadedCount}/${TOTAL_FRAMES})`;
+
+          if (i === 0) {
+            resizeCanvas();
+            renderCurrentState();
+          }
+
+          if (loadedCount >= TOTAL_FRAMES) {
+            hidePreloader();
+          }
+        };
+
+        images.push(img);
+      }
+
+      function hidePreloader() {
+        setTimeout(() => {
+          preloader.style.opacity = '0';
+          setTimeout(() => {
+            preloader.style.display = 'none';
+          }, 500);
+        }, 150);
+      }
+
+      // Safety timeout: dismiss loader after 2s and show frame 0
+      setTimeout(() => {
+        if (preloader.style.display !== 'none') {
+          hidePreloader();
+          resizeCanvas();
+          renderCurrentState();
+        }
+      }, 2000);
+
+      // Event listeners
+      window.addEventListener('resize', resizeCanvas);
+      window.addEventListener('scroll', () => {
+        requestAnimationFrame(updateFromScroll);
+      }, { passive: true });
+
+      // Manual 360° slider scrub interaction
+      frameSlider.addEventListener('input', (e) => {
+        isManualSlider = true;
+        const deg = parseInt(e.target.value, 10);
+        currentProgress = deg / 360;
+        sliderValue.textContent = `${deg}\u00B0`;
+        renderCurrentState();
+      });
+
+      frameSlider.addEventListener('change', () => {
+        setTimeout(() => { isManualSlider = false; }, 400);
+      });
+
+      // Digital Clock
+      setInterval(() => {
+        const now = new Date();
+        document.getElementById('clock-display').textContent = now.toLocaleTimeString('en-US', { hour12: false });
+      }, 1000);
+
+      // Copy Email functionality with visual feedback
+      document.getElementById('copyEmailBtn').addEventListener('click', () => {
+        navigator.clipboard.writeText('ahesan4@gmail.com');
+        const textSpan = document.getElementById('emailText');
+        textSpan.textContent = 'COPIED: ahesan4@gmail.com';
+        textSpan.style.color = '#10b981';
+        setTimeout(() => {
+          textSpan.textContent = 'ahesan4@gmail.com';
+          textSpan.style.color = '#ffffff';
+        }, 2500);
+      });
+
+      // Initial execution
+      resizeCanvas();
+      updateFromScroll();
+    })();
+  </script>
+</body>
+</html>
